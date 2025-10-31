@@ -1,0 +1,11 @@
+# Build directories
+build/
+
+# Generated documentation
+design/output/
+
+# IDE configuration
+.vscode/
+
+# Claude Code configuration (contains secrets)
+.claude.json

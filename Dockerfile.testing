@@ -1,0 +1,42 @@
+# Lightweight, debian support
+FROM debian:bullseye-slim
+
+# Update and install required dependencies
+# git used to pull google test
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    g++ \
+    git \
+    vim \
+    lcov \
+    gcovr \
+    doxygen \
+    graphviz \
+    default-jre \
+    plantuml \
+    libcurl4-openssl-dev
+
+# Usual workdir
+WORKDIR /app
+
+# Copy all directory content
+COPY . .
+
+# Build app, run unit-test and code coverage
+RUN mkdir build && \
+    cd build && \
+    cmake .. -DTESTING=ON -DCMAKE_CXX_FLAGS="--coverage" && \
+    make && \
+    mkdir -p /app/unit_test && chmod 777 /app/unit_test && \
+    ctest --verbose --output-on-failure > /app/unit_test/test_output.log && \
+    mkdir -p /app/coverage && chmod 777 /app/coverage && \
+    lcov --capture --directory . --output-file coverage.info && \
+    lcov --extract coverage.info '/app/src/*.cpp' --output-file coverage_clean.info && \
+    genhtml coverage_clean.info --output-directory /app/coverage
+
+# Run Doxygen
+RUN doxygen /app/design/Doxyfile
+
+ENTRYPOINT ["/bin/bash"]
+CMD []
